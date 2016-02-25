@@ -17,8 +17,6 @@ public abstract class ViewControllerBase {
     public static final int MSGID_DETACH_LOCKVIEW = 100;
     public static final  int MSGID_CUSTOM_MSG_START = 200;
 
-    public abstract ViewControllerBase getInstance();
-
     public abstract void onViewAttached();
 
     public abstract View onViewInflate(LayoutInflater inflater);

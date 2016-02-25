@@ -6,10 +6,14 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.RadioButton;
 
 import com.github.dubu.lockscreenusingservice.Lockscreen;
 import com.github.dubu.lockscreenusingservice.SharedPreferencesUtil;
+import com.github.dubu.lockscreenusingservice.service.ViewControllerHelper;
 
 /**
  * Created by DUBU on 15. 5. 20..
@@ -17,6 +21,14 @@ import com.github.dubu.lockscreenusingservice.SharedPreferencesUtil;
 public class MainActivity extends ActionBarActivity {
     private SwitchCompat mSwitchd = null;
     private Context mContext = null;
+    private RadioButton mRadioButtonDefault = null;
+    private RadioButton mRadioButtonSimple = null;
+
+    final static int VIEW_TYPE_DEFAULT = 0;
+    final static int VIEW_TYPE_SIMPLE = 1;
+    private int mViewType = VIEW_TYPE_DEFAULT;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,12 +48,39 @@ public class MainActivity extends ActionBarActivity {
 
         }
 
+        mRadioButtonDefault = (RadioButton) findViewById(R.id.radioButtonDefaultView);
+        mRadioButtonSimple = (RadioButton) findViewById(R.id.radioButtonCustomSimpleView);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (view.getId() == R.id.radioButtonCustomSimpleView){
+                    mViewType = VIEW_TYPE_SIMPLE;
+                }
+                else if (view.getId() == R.id.radioButtonDefaultView){
+                    mViewType = VIEW_TYPE_DEFAULT;
+                }
+            }
+        };
+        mRadioButtonDefault.setOnClickListener(listener);
+        mRadioButtonSimple.setOnClickListener(listener);
+
+
         mSwitchd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    SharedPreferencesUtil.setBoolean(Lockscreen.ISLOCK, true);
-                    Lockscreen.getInstance(mContext).startLockscreenService();
+                    if (mViewType == VIEW_TYPE_DEFAULT){
+                        ViewControllerHelper.getDefaultInstance().setViewController(null);
+                        SharedPreferencesUtil.setBoolean(Lockscreen.ISLOCK, true);
+                        Lockscreen.getInstance(mContext).startLockscreenService();
+                    }
+                    else {
+                        ViewControllerHelper.getDefaultInstance().setViewController(new SimpleViewController());
+                        SharedPreferencesUtil.setBoolean(Lockscreen.ISLOCK, true);
+                        Lockscreen.getInstance(mContext).startLockscreenService();
+                    }
+
                 } else {
                     SharedPreferencesUtil.setBoolean(Lockscreen.ISLOCK, false);
                     Lockscreen.getInstance(mContext).stopLockscreenService();

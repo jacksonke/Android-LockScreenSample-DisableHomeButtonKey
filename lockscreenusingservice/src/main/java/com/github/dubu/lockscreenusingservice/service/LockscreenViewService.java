@@ -8,24 +8,15 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.util.ArrayMap;
-import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import com.github.dubu.lockscreenusingservice.DebugLog;
 import com.github.dubu.lockscreenusingservice.Lockscreen;
 import com.github.dubu.lockscreenusingservice.LockscreenUtil;
-import com.github.dubu.lockscreenusingservice.R;
 import com.github.dubu.lockscreenusingservice.SharedPreferencesUtil;
-import com.romainpiel.shimmer.Shimmer;
-import com.romainpiel.shimmer.ShimmerTextView;
 
 
 /**

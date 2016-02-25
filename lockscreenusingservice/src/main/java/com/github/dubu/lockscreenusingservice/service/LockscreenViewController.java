@@ -30,7 +30,6 @@ public class LockscreenViewController extends ViewControllerBase {
     private final int MSGID_CHANGE_BACKGROUND_LOCK_VIEW = ViewControllerBase.MSGID_CUSTOM_MSG_START + 1;
 
     private Context mContext = null;
-    private LayoutInflater mInflater = null;
     private View mLockscreenView = null;
     private RelativeLayout mBackgroundLayout = null;
     private RelativeLayout mBackgroundInLayout = null;
@@ -223,19 +222,13 @@ public class LockscreenViewController extends ViewControllerBase {
     }
 
     @Override
-    public ViewControllerBase getInstance() {
-        return new LockscreenViewController();
-    }
-
-    @Override
     public void onViewAttached() {
         settingLockView();
     }
 
     @Override
     public View onViewInflate(LayoutInflater inflater) {
-        mInflater = inflater;
-        mLockscreenView = mInflater.inflate(R.layout.view_locokscreen, null);
+        mLockscreenView = inflater.inflate(R.layout.view_locokscreen, null);
         return mLockscreenView;
     }
 
