@@ -7,6 +7,7 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v4.util.ArrayMap;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -18,6 +19,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.github.dubu.lockscreenusingservice.DebugLog;
 import com.github.dubu.lockscreenusingservice.Lockscreen;
 import com.github.dubu.lockscreenusingservice.LockscreenUtil;
 import com.github.dubu.lockscreenusingservice.R;
@@ -30,33 +32,45 @@ import com.romainpiel.shimmer.ShimmerTextView;
  * Created by DUBULEE on 15. 5. 20..
  */
 public class LockscreenViewService extends Service {
-    private final int LOCK_OPEN_OFFSET_VALUE = 50;
+
     private Context mContext = null;
     private LayoutInflater mInflater = null;
     private View mLockscreenView = null;
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mParams;
-    private RelativeLayout mBackgroundLayout = null;
-    private RelativeLayout mBackgroundInLayout = null;
-    private ImageView mBackgroundLockImageView = null;
-    private RelativeLayout mForgroundLayout = null;
-    private RelativeLayout mStatusBackgruondDummyView = null;
-    private RelativeLayout mStatusForgruondDummyView = null;
-    private ShimmerTextView mShimmerTextView = null;
     private boolean mIsLockEnable = false;
     private boolean mIsSoftkeyEnable = false;
-    private int mDeviceWidth = 0;
-    private int mDevideDeviceWidth = 0;
-    private float mLastLayoutX = 0;
     private int mServiceStartId = 0;
     private SendMassgeHandler mMainHandler = null;
+
+    private ArrayMap<Integer, Runnable> mMsgMap = new ArrayMap<>();
+
+    ViewControllerBase mViewController = null;
+
+
 //    private boolean sIsSoftKeyEnable = false;
 
     private class SendMassgeHandler extends android.os.Handler {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            changeBackGroundLockView(mLastLayoutX);
+
+            if (msg.what == ViewControllerBase.MSGID_DETACH_LOCKVIEW){
+                dettachLockScreenView();
+                return;
+            }
+
+            if (null == mMsgMap){
+                return;
+            }
+
+            int idx = mMsgMap.indexOfKey(msg.what);
+            if (idx >= 0){
+                Runnable runnable = mMsgMap.get(Integer.valueOf(msg.what));
+                if (runnable != null){
+                    runnable.run();
+                }
+            }
         }
     }
     @Override
@@ -71,11 +85,14 @@ public class LockscreenViewService extends Service {
         mContext = this;
         SharedPreferencesUtil.init(mContext);
 //        sIsSoftKeyEnable = SharedPreferencesUtil.get(Lockscreen.ISSOFTKEY);
+
+        mViewController= ViewControllerHelper.getDefaultInstance().getCurrentVewController();
     }
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        DebugLog.d("onStartCommand called");
         mMainHandler = new SendMassgeHandler();
         if (isLockScreenAble()) {
             if (null != mWindowManager) {
@@ -102,6 +119,7 @@ public class LockscreenViewService extends Service {
 
     private void initState() {
 
+        DebugLog.d("initState called");
         mIsLockEnable = LockscreenUtil.getInstance(mContext).isStandardKeyguardState();
         if (mIsLockEnable) {
             mParams = new WindowManager.LayoutParams(
@@ -136,13 +154,23 @@ public class LockscreenViewService extends Service {
     }
 
     private void initView() {
+        DebugLog.d("initView called");
+
         if (null == mInflater) {
             mInflater = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         if (null == mLockscreenView) {
-            mLockscreenView = mInflater.inflate(R.layout.view_locokscreen, null);
+            if (mViewController != null){
 
+                mMsgMap = mViewController.onProvideMsg();
+
+                mViewController.onSetContext(mContext);
+
+                mViewController.onSetMessageHandler(mMainHandler);
+
+                mLockscreenView = mViewController.onViewInflate(mInflater);
+            }
         }
     }
 
@@ -158,7 +186,7 @@ public class LockscreenViewService extends Service {
 
 
     private void attachLockScreenView() {
-
+        DebugLog.d("attachLockScreenView called");
         if (null != mWindowManager && null != mLockscreenView && null != mParams) {
             mLockscreenView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
@@ -167,17 +195,27 @@ public class LockscreenViewService extends Service {
                 }
             });
             mWindowManager.addView(mLockscreenView, mParams);
-            settingLockView();
+
+            if (mViewController != null){
+                mViewController.onViewAttached();
+            }
+
         }
-
     }
-
 
     private boolean dettachLockScreenView() {
         if (null != mWindowManager && null != mLockscreenView) {
             mWindowManager.removeView(mLockscreenView);
             mLockscreenView = null;
             mWindowManager = null;
+
+            if (mViewController != null){
+                mViewController.onViewDetached();
+                mViewController = null;
+            }
+
+            mMsgMap = null;
+
             stopSelf(mServiceStartId);
             return true;
         } else {
@@ -186,159 +224,4 @@ public class LockscreenViewService extends Service {
     }
 
 
-    private void settingLockView() {
-        mBackgroundLayout = (RelativeLayout) mLockscreenView.findViewById(R.id.lockscreen_background_layout);
-        mBackgroundInLayout = (RelativeLayout) mLockscreenView.findViewById(R.id.lockscreen_background_in_layout);
-        mBackgroundLockImageView = (ImageView) mLockscreenView.findViewById(R.id.lockscreen_background_image);
-        mForgroundLayout = (RelativeLayout) mLockscreenView.findViewById(R.id.lockscreen_forground_layout);
-        mShimmerTextView = (ShimmerTextView) mLockscreenView.findViewById(R.id.shimmer_tv);
-        (new Shimmer()).start(mShimmerTextView);
-        mForgroundLayout.setOnTouchListener(mViewTouchListener);
-
-        mStatusBackgruondDummyView = (RelativeLayout) mLockscreenView.findViewById(R.id.lockscreen_background_status_dummy);
-        mStatusForgruondDummyView = (RelativeLayout) mLockscreenView.findViewById(R.id.lockscreen_forground_status_dummy);
-        setBackGroundLockView();
-
-        DisplayMetrics displayMetrics = mContext.getResources().getDisplayMetrics();
-        mDeviceWidth = displayMetrics.widthPixels;
-        mDevideDeviceWidth = (mDeviceWidth / 2);
-        mBackgroundLockImageView.setX((int) (((mDevideDeviceWidth) * -1)));
-
-        //kitkat
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            int val = LockscreenUtil.getInstance(mContext).getStatusBarHeight();
-            RelativeLayout.LayoutParams forgroundParam = (RelativeLayout.LayoutParams) mStatusForgruondDummyView.getLayoutParams();
-            forgroundParam.height = val;
-            mStatusForgruondDummyView.setLayoutParams(forgroundParam);
-            AlphaAnimation alpha = new AlphaAnimation(0.5F, 0.5F);
-            alpha.setDuration(0); // Make animation instant
-            alpha.setFillAfter(true); // Tell it to persist after the animation ends
-            mStatusForgruondDummyView.startAnimation(alpha);
-            RelativeLayout.LayoutParams backgroundParam = (RelativeLayout.LayoutParams) mStatusBackgruondDummyView.getLayoutParams();
-            backgroundParam.height = val;
-            mStatusBackgruondDummyView.setLayoutParams(backgroundParam);
-        }
-    }
-
-    private void setBackGroundLockView() {
-        if (mIsLockEnable) {
-            mBackgroundInLayout.setBackgroundColor(getResources().getColor(R.color.lock_background_color));
-            mBackgroundLockImageView.setVisibility(View.VISIBLE);
-
-        } else {
-            mBackgroundInLayout.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-            mBackgroundLockImageView.setVisibility(View.GONE);
-        }
-    }
-
-
-    private void changeBackGroundLockView(float forgroundX) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            if (forgroundX < mDeviceWidth) {
-                mBackgroundLockImageView.setBackground(getResources().getDrawable(R.drawable.lock));
-            } else {
-                mBackgroundLockImageView.setBackground(getResources().getDrawable(R.drawable.unlock));
-            }
-        } else {
-            if (forgroundX < mDeviceWidth) {
-                mBackgroundLockImageView.setBackgroundDrawable(getResources().getDrawable(R.drawable.lock));
-            } else {
-                mBackgroundLockImageView.setBackgroundDrawable(getResources().getDrawable(R.drawable.unlock));
-            }
-        }
-    }
-
-
-    private View.OnTouchListener mViewTouchListener = new View.OnTouchListener() {
-        private float firstTouchX = 0;
-        private float layoutPrevX = 0;
-        private float lastLayoutX = 0;
-        private float layoutInPrevX = 0;
-        private boolean isLockOpen = false;
-        private int touchMoveX = 0;
-        private int touchInMoveX = 0;
-
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN: {// 0
-                    firstTouchX = event.getX();
-                    layoutPrevX = mForgroundLayout.getX();
-                    layoutInPrevX = mBackgroundLockImageView.getX();
-                    if (firstTouchX <= LOCK_OPEN_OFFSET_VALUE) {
-                        isLockOpen = true;
-                    }
-                }
-                break;
-                case MotionEvent.ACTION_MOVE: { // 2
-                    if (isLockOpen) {
-                        touchMoveX = (int) (event.getRawX() - firstTouchX);
-                        if (mForgroundLayout.getX() >= 0) {
-                            mForgroundLayout.setX((int) (layoutPrevX + touchMoveX));
-                            mBackgroundLockImageView.setX((int) (layoutInPrevX + (touchMoveX / 1.8)));
-                            mLastLayoutX = lastLayoutX;
-                            mMainHandler.sendEmptyMessage(0);
-                            if (mForgroundLayout.getX() < 0) {
-                                mForgroundLayout.setX(0);
-                            }
-                            lastLayoutX = mForgroundLayout.getX();
-                        }
-                    } else {
-                        return false;
-                    }
-                }
-                break;
-                case MotionEvent.ACTION_UP: { // 1
-                    if (isLockOpen) {
-                        mForgroundLayout.setX(lastLayoutX);
-                        mForgroundLayout.setY(0);
-                        optimizeForground(lastLayoutX);
-                    }
-                    isLockOpen = false;
-                    firstTouchX = 0;
-                    layoutPrevX = 0;
-                    layoutInPrevX = 0;
-                    touchMoveX = 0;
-                    lastLayoutX = 0;
-                }
-                break;
-                default:
-                    break;
-            }
-
-            return true;
-        }
-    };
-
-    private void optimizeForground(float forgroundX) {
-//        final int devideDeviceWidth = (mDeviceWidth / 2);
-        if (forgroundX < mDevideDeviceWidth) {
-            int startPostion = 0;
-            for (startPostion = mDevideDeviceWidth; startPostion >= 0; startPostion--) {
-                mForgroundLayout.setX(startPostion);
-            }
-        } else {
-            TranslateAnimation animation = new TranslateAnimation(0, mDevideDeviceWidth, 0, 0);
-            animation.setDuration(300);
-            animation.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    mForgroundLayout.setX(mDevideDeviceWidth);
-                    mForgroundLayout.setY(0);
-                    dettachLockScreenView();
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-            });
-
-            mForgroundLayout.startAnimation(animation);
-        }
-    }
 }
