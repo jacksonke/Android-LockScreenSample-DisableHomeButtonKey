@@ -15,6 +15,7 @@ public abstract class ViewControllerBase {
     private WeakReference<Handler> mHandlerRef = null;
 
     public static final int MSGID_DETACH_LOCKVIEW = 100;
+//    public static final int MSGID_REPLACE_VIEW = 101;
     public static final  int MSGID_CUSTOM_MSG_START = 200;
 
     public abstract void onViewAttached();

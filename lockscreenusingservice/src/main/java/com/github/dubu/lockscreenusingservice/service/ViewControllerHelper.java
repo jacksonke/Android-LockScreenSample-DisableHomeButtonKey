@@ -1,13 +1,24 @@
 package com.github.dubu.lockscreenusingservice.service;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by Administrator on 2016/2/23.
  */
 public class ViewControllerHelper {
-    private ViewControllerBase mCurrentController = null;
+    public interface ControllerHelperListener{
+        public void onControllerChanged(ViewControllerBase viewController);
+    }
 
+    private ViewControllerBase mCurrentController = null;
     private static ViewControllerHelper sFactory = null;
+    private WeakReference<ControllerHelperListener> mListenerRef = null;
 //    private ArrayMap<String, Class<?> > mMap;
+
+    public void setListener(ControllerHelperListener listener){
+        mListenerRef = new WeakReference<>(listener);
+    }
+
 
     public static ViewControllerHelper getDefaultInstance(){
         if (sFactory == null){
@@ -55,7 +66,17 @@ public class ViewControllerHelper {
 //    }
 
     public void setViewController(ViewControllerBase viewController){
-        mCurrentController = viewController;
+        if (mCurrentController != viewController){
+            mCurrentController = viewController;
+
+            if (mListenerRef != null){
+                ControllerHelperListener listener = mListenerRef.get();
+                if (listener != null){
+                    listener.onControllerChanged(viewController);
+                }
+            }
+        }
+
     }
 
     public ViewControllerBase getCurrentVewController(){

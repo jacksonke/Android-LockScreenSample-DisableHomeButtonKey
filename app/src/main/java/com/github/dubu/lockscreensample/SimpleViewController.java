@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.github.dubu.lockscreenusingservice.service.ViewControllerBase;
+import com.github.dubu.lockscreenusingservice.service.ViewControllerHelper;
 
 /**
  * Created by Administrator on 2016/2/25.
@@ -22,7 +23,11 @@ public class SimpleViewController extends ViewControllerBase{
 
             @Override
             public void onClick(View view) {
-                dettachLockScreenView();
+                // destroy lockscreen directly
+//                dettachLockScreenView();
+
+                // jump to the transition view.
+                ViewControllerHelper.getDefaultInstance().setViewController(new TransitionViewController());
             }
         });
     }

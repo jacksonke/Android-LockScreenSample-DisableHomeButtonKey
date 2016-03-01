@@ -17,6 +17,9 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".TestService" >
+        </service>
+
         <!--<service android:name=".service.LockscreenService" >-->
         <!--</service>-->
         <!--<service android:name=".service.LockscreenViewService" >-->

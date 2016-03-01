@@ -22,7 +22,7 @@ import com.github.dubu.lockscreenusingservice.SharedPreferencesUtil;
 /**
  * Created by DUBULEE on 15. 5. 20..
  */
-public class LockscreenViewService extends Service {
+public class LockscreenViewService extends Service implements ViewControllerHelper.ControllerHelperListener{
 
     private Context mContext = null;
     private LayoutInflater mInflater = null;
@@ -37,6 +37,21 @@ public class LockscreenViewService extends Service {
     private ArrayMap<Integer, Runnable> mMsgMap = new ArrayMap<>();
 
     ViewControllerBase mViewController = null;
+
+    @Override
+    public void onControllerChanged(ViewControllerBase viewController) {
+        if (viewController == null){
+            return;
+        }
+
+        mViewController = viewController;
+        View oldView = mLockscreenView;
+        mWindowManager.removeView(oldView);
+        mLockscreenView = null;
+
+        initView();
+        attachLockScreenView();
+    }
 
 
 //    private boolean sIsSoftKeyEnable = false;
@@ -78,8 +93,8 @@ public class LockscreenViewService extends Service {
 //        sIsSoftKeyEnable = SharedPreferencesUtil.get(Lockscreen.ISSOFTKEY);
 
         mViewController= ViewControllerHelper.getDefaultInstance().getCurrentVewController();
+        ViewControllerHelper.getDefaultInstance().setListener(this);
     }
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -95,6 +110,7 @@ public class LockscreenViewService extends Service {
                 mInflater = null;
                 mLockscreenView = null;
             }
+
             initState();
             initView();
             attachLockScreenView();
@@ -213,6 +229,4 @@ public class LockscreenViewService extends Service {
             return false;
         }
     }
-
-
 }

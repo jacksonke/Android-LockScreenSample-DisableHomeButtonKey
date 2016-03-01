@@ -2,5 +2,6 @@
     <string name="app_name">LockScreenSample</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="hello_world_transition_view">hello_world_transition_view!</string>
     <string name="action_settings">Settings</string>
 </resources>

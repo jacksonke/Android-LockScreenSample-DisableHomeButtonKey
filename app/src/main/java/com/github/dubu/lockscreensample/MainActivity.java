@@ -1,6 +1,7 @@
 package com.github.dubu.lockscreensample;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SwitchCompat;
@@ -13,6 +14,7 @@ import android.widget.RadioButton;
 
 import com.github.dubu.lockscreenusingservice.Lockscreen;
 import com.github.dubu.lockscreenusingservice.SharedPreferencesUtil;
+import com.github.dubu.lockscreenusingservice.service.LockscreenService;
 import com.github.dubu.lockscreenusingservice.service.ViewControllerHelper;
 
 /**
@@ -42,10 +44,8 @@ public class MainActivity extends ActionBarActivity {
         boolean lockState = SharedPreferencesUtil.get(Lockscreen.ISLOCK);
         if (lockState) {
             mSwitchd.setChecked(true);
-
         } else {
             mSwitchd.setChecked(false);
-
         }
 
         mRadioButtonDefault = (RadioButton) findViewById(R.id.radioButtonDefaultView);
@@ -71,6 +71,10 @@ public class MainActivity extends ActionBarActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     if (mViewType == VIEW_TYPE_DEFAULT){
+//                        Intent startLockscreenIntent =  new Intent(mContext, TestService.class);
+//                        mContext.startService(startLockscreenIntent);
+
+
                         ViewControllerHelper.getDefaultInstance().setViewController(null);
                         SharedPreferencesUtil.setBoolean(Lockscreen.ISLOCK, true);
                         Lockscreen.getInstance(mContext).startLockscreenService();
@@ -82,6 +86,9 @@ public class MainActivity extends ActionBarActivity {
                     }
 
                 } else {
+//                    Intent startLockscreenIntent =  new Intent(mContext, TestService.class);
+//                    mContext.stopService(startLockscreenIntent);
+
                     SharedPreferencesUtil.setBoolean(Lockscreen.ISLOCK, false);
                     Lockscreen.getInstance(mContext).stopLockscreenService();
                 }
