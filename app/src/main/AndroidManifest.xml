@@ -17,7 +17,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".TestService" >
+        <service android:name="com.github.jacksonke.lockscreensample.TestService" >
         </service>
 
         <!--<service android:name=".service.LockscreenService" >-->

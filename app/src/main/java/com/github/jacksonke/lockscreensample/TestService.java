@@ -1,4 +1,4 @@
-package com.github.dubu.lockscreensample;
+package com.github.jacksonke.lockscreensample;
 
 import android.app.Service;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import android.support.annotation.Nullable;
 import com.github.dubu.lockscreenusingservice.DebugLog;
 
 /**
- * Created by Administrator on 2016/2/29.
+ * Created by jacksonke on 2016/2/29.
  */
 public class TestService extends Service{
 

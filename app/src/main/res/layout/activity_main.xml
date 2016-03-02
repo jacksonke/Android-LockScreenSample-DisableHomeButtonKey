@@ -19,7 +19,8 @@
             android:id="@+id/radioButtonDefaultView"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:checked="true" />
 
         <RadioButton
             android:layout_width="wrap_content"

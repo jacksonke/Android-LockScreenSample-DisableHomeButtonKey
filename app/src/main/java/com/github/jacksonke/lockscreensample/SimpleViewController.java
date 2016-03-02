@@ -1,15 +1,16 @@
-package com.github.dubu.lockscreensample;
+package com.github.jacksonke.lockscreensample;
 
 import android.support.v4.util.ArrayMap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 
+import com.github.dubu.lockscreensample.R;
 import com.github.dubu.lockscreenusingservice.service.ViewControllerBase;
 import com.github.dubu.lockscreenusingservice.service.ViewControllerHelper;
 
 /**
- * Created by Administrator on 2016/2/25.
+ * Created by jacksonke on 2016/2/25.
  */
 public class SimpleViewController extends ViewControllerBase{
 

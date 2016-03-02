@@ -1,4 +1,4 @@
-package com.github.dubu.lockscreensample;
+package com.github.jacksonke.lockscreensample;
 
 import android.os.Handler;
 import android.os.Message;
@@ -6,7 +6,9 @@ import android.support.v4.util.ArrayMap;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import com.github.dubu.lockscreensample.R;
 import com.github.dubu.lockscreenusingservice.service.ViewControllerBase;
+import com.github.dubu.lockscreenusingservice.service.ViewControllerHelper;
 
 import java.lang.ref.WeakReference;
 
@@ -60,6 +62,7 @@ public class TransitionViewController extends ViewControllerBase {
     @Override
     public void onViewDetached() {
         mLockscreenView = null;
+        ViewControllerHelper.getDefaultInstance().setViewController(new SimpleViewController());
     }
 
     @Override

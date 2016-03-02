@@ -93,12 +93,18 @@ public class LockscreenViewService extends Service implements ViewControllerHelp
 //        sIsSoftKeyEnable = SharedPreferencesUtil.get(Lockscreen.ISSOFTKEY);
 
         mViewController= ViewControllerHelper.getDefaultInstance().getCurrentVewController();
-        ViewControllerHelper.getDefaultInstance().setListener(this);
+
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         DebugLog.d("onStartCommand called");
+        if (mViewController == null){
+            mViewController = ViewControllerHelper.getDefaultInstance().getCurrentVewController();
+        }
+
+        ViewControllerHelper.getDefaultInstance().setListener(this);
+
         mMainHandler = new SendMassgeHandler();
         if (isLockScreenAble()) {
             if (null != mWindowManager) {
@@ -120,6 +126,7 @@ public class LockscreenViewService extends Service implements ViewControllerHelp
 
     @Override
     public void onDestroy() {
+        DebugLog.d("onDestroy called");
         dettachLockScreenView();
     }
 
@@ -216,12 +223,13 @@ public class LockscreenViewService extends Service implements ViewControllerHelp
             mLockscreenView = null;
             mWindowManager = null;
 
+            mMsgMap = null;
+            ViewControllerHelper.getDefaultInstance().setListener(null);
+
             if (mViewController != null){
                 mViewController.onViewDetached();
                 mViewController = null;
             }
-
-            mMsgMap = null;
 
             stopSelf(mServiceStartId);
             return true;
